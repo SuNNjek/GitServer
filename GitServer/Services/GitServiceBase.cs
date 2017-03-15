@@ -21,5 +21,18 @@ namespace GitServer.Services
 
 		protected Repository GetRepository(string name)
 			=> new Repository(Path.Combine(Settings.BasePath, name));
+
+		protected Commit GetLatestCommit(string repoName, string branch = null)
+		{
+			Repository repo = GetRepository(repoName);
+
+			Branch b;
+			if (branch == null)
+				b = repo.Head;
+			else
+				b = repo.Branches.First(d => d.CanonicalName == branch);
+
+			return b.Tip;
+		}
     }
 }

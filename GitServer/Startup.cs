@@ -33,7 +33,8 @@ namespace GitServer
             services.AddMvc();
 			services.AddOptions();
 
-			services.Configure<GitSettings>(Configuration.GetSection("GitSettings"));
+			services.Configure<GitSettings>(Configuration.GetSection(nameof(GitSettings)));
+			services.Configure<LogSettings>(Configuration.GetSection(nameof(LogSettings)));
 
 			services.AddTransient<GitRepositoryService>();
 			services.AddTransient<GitFileService>();
