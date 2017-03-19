@@ -9,6 +9,13 @@ namespace GitServer
 		public static void RegisterRoutes(IRouteBuilder routeBuilder)
 		{
 			routeBuilder.MapRoute(
+				"Home",
+				"",
+				new { controller = "Home", action = "Home" },
+				new { method = new HttpMethodRouteConstraint("GET") }
+			);
+
+			routeBuilder.MapRoute(
 				"GetFileView",
 				"git/{repoName}/files/{*filePath}",
 				new { controller = "Git", action = "GetFileView" },
