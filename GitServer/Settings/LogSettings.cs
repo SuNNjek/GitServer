@@ -11,7 +11,7 @@ namespace GitServer.Settings
 		/// </summary>
 		public string LogFile
 		{
-			get { return string.Format(_logFile, DateTime.Now.ToString("yyyyMMdd")); }
+			get { return string.Format(_logFile ?? "log{0}.txt", DateTime.Now.ToString("yyyyMMdd")); }
 			set { _logFile = value; }
 		}
     }

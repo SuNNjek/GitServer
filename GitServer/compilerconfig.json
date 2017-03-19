@@ -1,0 +1,18 @@
+﻿[
+  {
+    "outputFile": "Views/Shared/style.css",
+    "inputFile": "Views/Shared/style.less"
+  },
+  {
+    "outputFile": "Styles/main.css",
+    "inputFile": "Styles/main.less"
+  },
+  {
+    "outputFile": "Styles/test.css",
+    "inputFile": "Styles/test.scss"
+  },
+  {
+    "outputFile": "Styles/main.css",
+    "inputFile": "Styles/main.scss"
+  }
+]

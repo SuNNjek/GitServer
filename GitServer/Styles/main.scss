@@ -1,0 +1,88 @@
+﻿@import 'functions';
+
+@mixin browse-icon($pic_url) {
+	background: url($pic_url) no-repeat left top;
+	height: 20px;
+	padding-left: 20px;
+}
+
+$background: hsl(0, 0%, 100%);
+$text-color: pick-contrast($background);
+
+$base-color: hsl(194, 100%, 50%);
+$button-color: lighten($base-color, 20%);
+$button-color-hover: lighten($button-color, 10%);
+
+body {
+	width: 100%;
+	height: 100%;
+	background-color: $background;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	color: $text-color;
+}
+
+.content {
+	position: absolute;
+	top: 60px;
+	padding: 5px;
+}
+
+.navbar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 55px;
+	background-color: $base-color;
+	padding: 1px;
+}
+
+.navbar-item {
+	background-color: $button-color;
+	border-radius: 3px;
+	margin: 5px;
+	padding: 5px;
+	text-decoration: none;
+}
+
+.navbar-item > li {
+	display: inline;
+}
+
+.navbar-item:hover {
+	background-color: $button-color-hover;
+}
+
+.code {
+	padding: 10px;
+}
+
+.code > span {
+	font-family: monospace;
+	color: black;
+}
+
+.code > .comment {
+	color: #008000;
+}
+
+.code > .string {
+	color: #a31515;
+}
+
+.code > .keyword {
+	color: #0000ff;
+}
+
+ul.file-browser {
+	list-style-type: none;
+	padding-left: unset;
+}
+
+li.file {
+	@include browse-icon('/img/text-file-16.png');
+}
+
+li.dir {
+	@include browse-icon('/img/folder-16.png');
+}

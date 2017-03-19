@@ -18,6 +18,8 @@ namespace GitServer.Services
 			return GetLatestCommit(repoName, branch).Tree;			
 		}
 
+		public TreeEntry GetFileTreeEntry(string repoName, string path, string branch = null) => GetFileTree(repoName, branch)[path];
+
 		public IEnumerable<string> GetFiles(string repoName, string branch = null)
 		{
 			Tree tree = GetFileTree(repoName);

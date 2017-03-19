@@ -1,0 +1,28 @@
+@using GitServer.Services
+@using LibGit2Sharp
+@using System.IO
+@inject GitRepositoryService repoService
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewData["Title"]</title>
+	<link rel="stylesheet" type="text/css" href="@Url.Content("~/css/main.min.css")" />
+</head>
+<body>
+	<nav class="navbar">
+		<ul>
+			@foreach (DirectoryInfo repo in repoService.RepositoryDirectories.OrderBy(d => d.Name).Take(10))
+			{
+				<a class="navbar-item" href="@Url.RouteUrl("GetFileView", new { repoName = repo.Name, filePath = String.Empty })">
+					<li>@repo.Name</li>
+				</a>
+			}
+		</ul>
+	</nav>
+	<div class="content">
+		@RenderBody()
+	</div>
+</body>
+</html>

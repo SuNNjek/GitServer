@@ -19,7 +19,7 @@ namespace GitServer.Services
 			_settings = settings;
 		}
 
-		protected Repository GetRepository(string name)
+		public Repository GetRepository(string name)
 			=> new Repository(Path.Combine(Settings.BasePath, name));
 
 		protected Commit GetLatestCommit(string repoName, string branch = null)

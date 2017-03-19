@@ -1,14 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using GitServer.Helpers;
 using GitServer.Services;
 using GitServer.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace GitServer
 {
@@ -46,7 +53,21 @@ namespace GitServer
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseMvc();
-        }
-    }
+            app.UseMvc(d => Routing.RegisterRoutes(d));
+
+			//Use static css stylesheets
+			app.UseStaticFiles(new StaticFileOptions()
+			{
+				FileProvider = new MinCssFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Styles")),
+				RequestPath = new PathString("/css")
+			});
+
+			//Use static css stylesheets
+			app.UseStaticFiles(new StaticFileOptions()
+			{
+				FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Images")),
+				RequestPath = new PathString("/img")
+			});
+		}
+	}
 }

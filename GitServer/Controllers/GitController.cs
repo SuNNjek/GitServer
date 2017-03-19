@@ -11,144 +11,52 @@ using GitServer.Extensions;
 using GitServer.Services;
 using LibGit2Sharp;
 using GitServer.Attributes;
+using GitServer.Models;
 
 namespace GitServer.Controllers
 {
-    [Route("git")]
     public class GitController : GitControllerBase
     {
 		private GitFileService _fileService;
-		private GitRepositoryService _repoService;
 
 		public GitController(
 			GitFileService fileService
 			, GitRepositoryService repoService
+			, IOptions<GitSettings> gitOptions
 			, IOptions<LogSettings> logOptions
-		) : base(logOptions)
+		) : base(gitOptions, logOptions, repoService)
 		{
 			_fileService = fileService;
-			_repoService = repoService;
 		}
 
 		[HttpGet()]
-		public IActionResult GetRepositories()
-			=> Json(_repoService.Repositories.Select(d => new DirectoryInfo(d.Info.Path).Name));
+		public IActionResult GetRepositories() => Json(RepositoryService.Repositories.Select(d => new DirectoryInfo(d.Info.Path).Name));
 
-		/// <summary>
-		/// Action for reference discovery
-		/// </summary>
-		/// <param name="repoName">The name of the repository</param>
-		/// <param name="service">The name of the service</param>
-		/// <returns></returns>
-		[HttpGet("{repoName}/info/refs")]
-		[ResponseHeader("Cache-Control", "no-cache")]
-		[Produces("text/plain")]
+		public IActionResult ExecuteUploadPack(string repoName)
+			=> TryGetResult(repoName, () => GitCommand(repoName, "git-upload-pack", false));
+
+		public IActionResult ExecuteReceivePack(string repoName)
+			=> TryGetResult(repoName, () => GitCommand(repoName, "git-receive-pack", false, false));
+
 		public IActionResult GetInfoRefs(string repoName, string service)
-		{
-			try
-			{
-				switch (service)
+			=> TryGetResult(repoName, () => GitCommand(repoName, service, true));
+
+		public IActionResult GetFileView(string repoName, string filePath)
+			=> TryGetResult(repoName, () =>
 				{
-					case "git-receive-pack":
-					case "git-upload-pack":
-						{
-							List<string> lines = new List<string>();
-							lines.Add($"# service={service}");
+					FileTreeEntry model;
+					if (filePath != null)
+					{
+						TreeEntry entry = _fileService.GetFileTreeEntry(repoName, filePath);
+						model = new FileTreeEntry(repoName, entry.Path, entry.Target);
+					}
+					else
+					{
+						model = new FileTreeEntry(repoName, Path.DirectorySeparatorChar.ToString(), _fileService.GetFileTree(repoName, filePath));
+					}
 
-							int lineNumber = 0;
-							foreach (Reference reference in _repoService.GetReferences(repoName))
-							{
-								string line = $"{reference.TargetIdentifier} {reference.CanonicalName}";
-
-								if (lineNumber++ == 0)
-									line += $"\0{_repoService.ServerCapabilities}";
-
-								lines.Add(line);
-							}
-
-							return PackageList($"application/x-{service}-advertisement", lines);
-						}
-
-					default:
-						Response.ContentType = "text/plain";
-						return StatusCode(403, "Requested service is not supported");
+					return View("Files", model);
 				}
-			}
-			catch (RepositoryNotFoundException)
-			{
-				return MakeError("Repository not found", repoName);
-			}
-			catch (Exception e)
-			{
-				return MakeError(e, repoName);
-			}
-		}
-
-		[HttpPost("{repoName}/info/refs")]
-		[ResponseHeader("Cache-Control", "no-cache")]
-		[GitBasicAuthentication()]
-		public IActionResult PostInfoRefs(string repoName, string service)
-		{
-			try
-			{
-				Response.ContentType = $"application/x-{service}-request";
-
-				switch (service)
-				{
-					default:
-						Response.ContentType = "text/plain";
-						return StatusCode(403, "Requested service is not supported");
-				}
-			}
-			catch(RepositoryNotFoundException)
-			{
-				return MakeError("Repository not found", repoName);
-			}
-			catch(Exception e)
-			{
-				return MakeError(e, repoName);
-			}
-		}
-
-		[HttpGet("{repoName}/files")]
-		[Produces("application/json")]
-		public IActionResult GetFiles(string repoName)
-		{
-			try
-			{
-				return Json(
-					_fileService.GetFiles(repoName)
-				);
-			}
-			catch(RepositoryNotFoundException)
-			{
-				return MakeError("Repository not found", repoName);
-			}
-			catch(Exception e)
-			{
-				return MakeError(e, repoName);
-			}
-		}
-
-		[HttpGet("{repoName}/files/{*filePath}")]
-		[Produces("application/json")]
-		public IActionResult GetFile(string repoName, string filePath)
-		{
-			try
-			{
-				return Content(
-					_fileService
-						.GetFileContents(repoName, filePath.Replace('/', Path.DirectorySeparatorChar))
-					);
-			}
-			catch (RepositoryNotFoundException)
-			{
-				return MakeError("Repository not found", repoName);
-			}
-			catch (Exception e)
-			{
-				return MakeError(e, repoName);
-			}
-		}
+		);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using GitServer.Settings;
 using LibGit2Sharp;
 using Microsoft.Extensions.Options;
@@ -9,19 +10,27 @@ namespace GitServer.Services
 {
 	public class GitRepositoryService : GitServiceBase
 	{
-		public string ServerCapabilities => Settings.ServerCapabilities;
+		private static List<string> _repos = null;
 
-		public IEnumerable<Repository> Repositories
+		public IEnumerable<Repository> Repositories => RepositoryDirectories.Select(d => new Repository(d.FullName));
+
+		public IEnumerable<DirectoryInfo> RepositoryDirectories
 		{
 			get
 			{
-				DirectoryInfo basePath = new DirectoryInfo(Settings.BasePath);
-				foreach(DirectoryInfo path in basePath.EnumerateDirectories())
+				if (_repos == null)
 				{
-					string repPath = Repository.Discover(path.FullName);
-					if (repPath != null)
-						yield return new Repository(repPath);
+					_repos = new List<string>();
+					DirectoryInfo basePath = new DirectoryInfo(Settings.BasePath);
+					foreach (DirectoryInfo path in basePath.EnumerateDirectories())
+					{
+						string repPath = Repository.Discover(path.FullName);
+						if (repPath != null)
+							_repos.Add(repPath);
+					}
 				}
+
+				return _repos.Select(d => new DirectoryInfo(d));
 			}
 		}
 
@@ -30,7 +39,13 @@ namespace GitServer.Services
 		}
 
 		public Repository CreateRepository(string name)
-			=> new Repository(Repository.Init(Path.Combine(Settings.BasePath, name), true));
+		{
+			string path = Path.Combine(Settings.BasePath, name);
+			Repository repo = new Repository(Repository.Init(path, true));
+
+			_repos.Add(path);
+			return repo;
+		}
 
 		public void DeleteRepository(string name)
 		{
@@ -39,7 +54,10 @@ namespace GitServer.Services
 			{
 				try
 				{
-					Directory.Delete(Path.Combine(Settings.BasePath, name), true);
+					string path = Path.Combine(Settings.BasePath, name);
+					Directory.Delete(path, true);
+
+					_repos.Remove(path);
 				}
 				catch(Exception ex) { e = ex; }
 			}
@@ -49,15 +67,13 @@ namespace GitServer.Services
 		}
 
 		public ReferenceCollection GetReferences(string repoName) => GetRepository(repoName).Refs;
-
-		public void Test(string repoName)
+		
+		public void Test()
 		{
-			Repository repo = GetRepository(repoName);
+			Repository test = GetRepository("asdf");
 
-			foreach(TreeEntry entry in repo.Head.Tip.Tree)
-			{
-				
-			}
+			ObjectDatabase db = test.ObjectDatabase;
+			
 		}
 	}
 }
