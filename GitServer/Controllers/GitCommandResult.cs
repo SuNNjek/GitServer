@@ -48,17 +48,7 @@ namespace GitServer.Controllers
 
 				if (Options.EndStreamWithNull)
 					process.StandardInput.Write('\0');
-				else
-					process.StandardInput.Dispose();
-
-				if(Options.LogWriter != null)
-				{
-					using (StreamWriter sw = Options.LogWriter())
-					{
-						sw.Write(process.StandardError.ReadToEnd());
-						process.StandardError.BaseStream.CopyTo(sw.BaseStream);
-					}
-				}
+				process.StandardInput.Dispose();
 
 				using (StreamWriter writer = new StreamWriter(responseStream))
 				{

@@ -11,15 +11,13 @@ namespace GitServer.Controllers
 		public bool EndStreamWithNull { get; set; }
 		public string Service { get; set; }
 		public Repository Repository { get; set; }
-		public Func<StreamWriter> LogWriter { get; set; }
 
-		public GitCommandOptions(Repository repo, string service, bool advertiseRefs, bool endStreamWithNull = true, Func<StreamWriter> logWriter = null)
+		public GitCommandOptions(Repository repo, string service, bool advertiseRefs, bool endStreamWithNull = true)
 		{
 			Repository = repo;
 			Service = service;
 			AdvertiseRefs = advertiseRefs;
 			EndStreamWithNull = endStreamWithNull;
-			LogWriter = logWriter;
 		}
 
 		public override string ToString()

@@ -34,14 +34,13 @@ namespace GitServer.Controllers
 		protected PackageListResult PackageList(string contentType, IEnumerable<string> lines)
 			=> new PackageListResult(contentType, lines);
 
-		protected GitCommandResult GitCommand(string repoName, string service, bool advertiseRefs, bool endStreamWithNull = true, Func<StreamWriter> logWriter = null)
+		protected GitCommandResult GitCommand(string repoName, string service, bool advertiseRefs, bool endStreamWithNull = true)
 		{
 			return new GitCommandResult(_gitOptions.Value.GitPath, new GitCommandOptions(
 				RepositoryService.GetRepository(repoName),
 				service,
 				advertiseRefs,
-				endStreamWithNull,
-				() => new StreamWriter(System.IO.File.OpenWrite(LogSettings.LogFile))
+				endStreamWithNull
 			));
 		}
 
