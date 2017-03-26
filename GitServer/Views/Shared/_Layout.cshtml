@@ -1,37 +1,60 @@
+﻿@using GitServer.Security
 @using GitServer.Services
 @using LibGit2Sharp
+@using Microsoft.AspNetCore.Identity
 @using System.IO
 @inject GitRepositoryService repoService
+@inject SignInManager<GitServerUser> signInManager
+@inject UserManager<GitServerUser> userManager
+
+@{ 
+	var request = Context.Request;
+	bool signedIn = signInManager.IsSignedIn(User);
+	string userName = userManager.GetUserName(User);
+}
 
 <!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
-    <title>@ViewData["Title"]</title>
+    <title>@ViewBag.Title - GitServer</title>
+	<meta charset="utf-8" />
 	<link rel="stylesheet" type="text/css" href="@Url.Content("~/css/main.min.css")" />
 	<link rel="shortcut icon" href="/img/favicon.ico" />
 </head>
 <body>
 	<nav class="navbar">
-		<table>
-			<tr>
-				<td>
-					<a href="@Url.RouteUrl("Home")">
-						<img src="/img/logo_white.svg" alt="Logo" style="height: 40px; width: 40px; padding-left: 10px;" />
+		<span class="logo">
+			<a style="text-decoration:none;" href="@Url.RouteUrl("Home")">
+				<img src="/img/logo_white.svg" alt="Logo" class="logo-image" />
+			</a>
+		</span>
+		<ul class="navbar-list">
+			@if (signedIn)
+			{
+				<li style="display:inline-block;padding: 7px 5px;float:left">
+					Logged in as @userName
+				</li>
+				<li class="navbar-item right">
+					@Html.RouteLink("Log out", "Logout", new { /* Empty */ }, new { @class = "navbar-link" })
+				</li>
+			}
+			else if(!(ViewBag.IsLoginPage ?? false))	//Are we on the login page?
+			{
+				<li class="navbar-item right">
+					@Html.RouteLink("Log in", "Login", new { returnUrl = request.Path + request.QueryString }, new { @class = "navbar-link" })
+				</li>
+			}
+
+			@*@foreach (DirectoryInfo repo in repoService.RepositoryDirectories.OrderBy(d => d.Name).Take(10))
+			{
+				<li class="navbar-item">
+					<a class="navbar-link" href="@Url.RouteUrl("GetRepositoryHomeView", new { repoName = repo.Name })">
+						@repo.Name
 					</a>
-				</td>
-				<td>
-					<ul>
-						@foreach (DirectoryInfo repo in repoService.RepositoryDirectories.OrderBy(d => d.Name).Take(10))
-						{
-							<a class="navbar-item" href="@Url.RouteUrl("GetFileView", new { repoName = repo.Name, filePath = String.Empty })">
-								<li>@repo.Name</li>
-							</a>
-						}
-					</ul>
-				</td>
-			</tr>
-		</table>
+				</li>
+			}*@
+		</ul>
 	</nav>
 	<div class="content">
 		@RenderBody()

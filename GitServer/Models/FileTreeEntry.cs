@@ -28,10 +28,10 @@ namespace GitServer.Models
 
 		public string RepoName => _repoName;
 
-		public bool IsFile => _object is Blob;
-		public bool IsDirectory => _object is Tree;
+		public bool IsFile => _object is LibGit2Sharp.Blob;
+		public bool IsDirectory => _object is LibGit2Sharp.Tree;
 
-		public bool IsBinary => IsFile && ((Blob)_object).IsBinary;
+		public bool IsBinary => IsFile && ((LibGit2Sharp.Blob)_object).IsBinary;
 
 		public string ContentString
 		{
@@ -40,7 +40,7 @@ namespace GitServer.Models
 				if (!IsFile)
 					throw new InvalidOperationException();
 
-				return ((Blob)_object).GetContentText();
+				return ((LibGit2Sharp.Blob)_object).GetContentText();
 			}
 		}
 
@@ -51,7 +51,7 @@ namespace GitServer.Models
 				if (!IsFile)
 					throw new InvalidOperationException();
 
-				return ((Blob)_object).GetContentStream();
+				return ((LibGit2Sharp.Blob)_object).GetContentStream();
 			}
 		}
 
@@ -70,7 +70,7 @@ namespace GitServer.Models
 			if (_parent != null)
 				yield return _parent;
 
-			foreach (TreeEntry entry in (Tree)_object)
+			foreach (TreeEntry entry in (LibGit2Sharp.Tree)_object)
 			{
 				FileTreeEntry res = new FileTreeEntry(_repoName, entry.Path, entry.Target);
 				res._parent = this;

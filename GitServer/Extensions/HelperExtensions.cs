@@ -1,11 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace GitServer.Extensions
 {
 	public static class HelperExtensions
     {
+		public static string ToEnvVariable(this IEnumerable<string> stringList, string seperator = ",")
+		{
+			return string.Join(seperator, stringList.Select(d => d.Replace(@"\", @"\\").Replace(seperator, $@"\{seperator}")));
+		}
+
 		public static void CopyTo(this StreamReader reader, StreamWriter writer, int bufferSize = 4096)
 		{
 			char[] buffer = new char[bufferSize];

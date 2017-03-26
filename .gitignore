@@ -262,4 +262,3 @@ __pycache__/
 
 # Custom ignores
 Logs/
-GitServer/Styles/*.css

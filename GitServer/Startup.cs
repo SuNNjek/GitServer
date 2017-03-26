@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GitServer.Data;
 using GitServer.Helpers;
 using GitServer.Services;
 using GitServer.Settings;
@@ -16,6 +17,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Microsoft.EntityFrameworkCore;
+using GitServer.Security;
+using GitServer.Security.BasicAuthentication;
 
 namespace GitServer
 {
@@ -40,9 +44,39 @@ namespace GitServer
             services.AddMvc();
 			services.AddOptions();
 
+			// Add settings
 			services.Configure<GitSettings>(Configuration.GetSection(nameof(GitSettings)));
 			services.Configure<LogSettings>(Configuration.GetSection(nameof(LogSettings)));
+			services.Configure<EmailSettings>(Configuration.GetSection(nameof(EmailSettings)));
 
+			// Add database context
+			services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+
+			// Add identity
+			services.AddIdentity<GitServerUser, GitServerRole>(d =>
+				{
+					// Cookie settings
+					d.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(30);
+					d.Cookies.ApplicationCookie.LoginPath = "/users/login";
+					d.Cookies.ApplicationCookie.LogoutPath = "/users/logout";
+
+					// Lockout settings
+					d.Lockout.MaxFailedAccessAttempts = 10;
+					d.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+
+					// Password settings
+					d.Password.RequiredLength = 8;
+
+					// Sign-in settings
+					d.SignIn.RequireConfirmedEmail = true;
+
+					// User settings
+					d.User.RequireUniqueEmail = true;
+				})
+				.AddEntityFrameworkStores<ApplicationDbContext, Guid>()
+				.AddDefaultTokenProviders();
+
+			// Add git services
 			services.AddTransient<GitRepositoryService>();
 			services.AddTransient<GitFileService>();
         }
@@ -53,7 +87,21 @@ namespace GitServer
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseMvc(d => Routing.RegisterRoutes(d));
+			if(env.IsDevelopment())
+			{
+				app.UseDeveloperExceptionPage();
+			}
+			else
+			{
+				app.UseExceptionHandler("/error");
+			}
+
+			app.UseBasicAuthentication("GitServer");
+			app.UseIdentity();
+            app.UseMvc(d => RouteConfig.RegisterRoutes(d));
+
+			//Create roles
+			app.SeedRoles().Wait();
 
 			//Use static css stylesheets
 			app.UseStaticFiles(new StaticFileOptions()

@@ -1,62 +1,30 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using GitServer.Security;
+using GitServer.Services;
+using GitServer.Settings;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using GitServer.Settings;
-using System.IO;
-using GitServer.Extensions;
-using GitServer.Services;
-using LibGit2Sharp;
-using GitServer.Attributes;
-using GitServer.Models;
 
 namespace GitServer.Controllers
 {
-    public class GitController : GitControllerBase
+	[Authorize(ActiveAuthenticationSchemes = "Basic")]
+	public class GitController : GitControllerBase
     {
-		private GitFileService _fileService;
-
 		public GitController(
-			GitFileService fileService
-			, GitRepositoryService repoService
-			, IOptions<GitSettings> gitOptions
-			, IOptions<LogSettings> logOptions
-		) : base(gitOptions, logOptions, repoService)
-		{
-			_fileService = fileService;
-		}
+			GitRepositoryService repoService,
+			IOptions<GitSettings> gitOptions,
+			IOptions<LogSettings> logOptions,
+			UserManager<GitServerUser> userManager,
+			RoleManager<GitServerRole> roleManager
+		)
+			: base(gitOptions, logOptions, repoService, userManager, roleManager)
+		{ }
 
-		[HttpGet()]
-		public IActionResult GetRepositories() => Json(RepositoryService.Repositories.Select(d => new DirectoryInfo(d.Info.Path).Name));
+		public IActionResult ExecuteUploadPack(string repoName) => TryGetResult(repoName, () => GitUploadPack(repoName));
 
-		public IActionResult ExecuteUploadPack(string repoName)
-			=> TryGetResult(repoName, () => GitCommand(repoName, "git-upload-pack", false));
+		public IActionResult ExecuteReceivePack(string repoName) => TryGetResult(repoName, () => GitReceivePack(repoName));
 
-		public IActionResult ExecuteReceivePack(string repoName)
-			=> TryGetResult(repoName, () => GitCommand(repoName, "git-receive-pack", false, false));
-
-		public IActionResult GetInfoRefs(string repoName, string service)
-			=> TryGetResult(repoName, () => GitCommand(repoName, service, true));
-
-		public IActionResult GetFileView(string repoName, string filePath)
-			=> TryGetResult(repoName, () =>
-				{
-					FileTreeEntry model;
-					if (filePath != null)
-					{
-						TreeEntry entry = _fileService.GetFileTreeEntry(repoName, filePath);
-						model = new FileTreeEntry(repoName, entry.Path, entry.Target);
-					}
-					else
-					{
-						model = new FileTreeEntry(repoName, Path.DirectorySeparatorChar.ToString(), _fileService.GetFileTree(repoName, filePath));
-					}
-
-					return View("Files", model);
-				}
-		);
+		public IActionResult GetInfoRefs(string repoName, string service) => TryGetResult(repoName, () => GitCommand(repoName, service, true));
     }
 }

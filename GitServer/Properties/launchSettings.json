@@ -19,7 +19,6 @@
     "GitServer": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "git/AngularTest/files",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

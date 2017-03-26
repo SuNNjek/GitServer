@@ -1,4 +1,7 @@
-﻿namespace GitServer.Services
+﻿using GitServer.Security;
+using Microsoft.AspNetCore.Identity;
+
+namespace GitServer.Services
 {
 	/// <summary>
 	/// Static class for handling git authentication

@@ -1,0 +1,47 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@using GitServer.Models
+@model RegisterModel
+
+@{ 
+	ViewBag.Title = "Register";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if(ViewBag.RegistrationSuccessful ?? false)
+{
+	<h2>Registration successful</h2>
+	<p>
+		Congratulations, your registration was successful.<br />
+		The only thing left to do now is verify your e-mail using the link you've just received in your inbox.
+	</p>
+}
+else
+{
+	<h2>Register new account</h2>
+
+	<div style="width: 315px;">
+		<form asp-route="Register" method="post">
+			<table>
+				<tr>
+					<td><label asp-for="Username"></label></td>
+					<td><input asp-for="Username" /></td>
+				</tr>
+				<tr>
+					<td><label asp-for="Email"></label></td>
+					<td><input asp-for="Email" /></td>
+				</tr>
+				<tr>
+					<td><label asp-for="Password"></label></td>
+					<td><input asp-for="Password" /></td>
+				</tr>
+				<tr>
+					<td><label asp-for="ConfirmPassword"></label></td>
+					<td><input asp-for="ConfirmPassword" /></td>
+				</tr>
+			</table>
+			<br />
+			<input type="submit" style="float:right;" value="Register" />
+		</form>
+	</div>
+}

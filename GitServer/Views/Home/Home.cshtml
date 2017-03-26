@@ -1,4 +1,16 @@
+@using System.Collections.Generic
+@model IEnumerable<string>
+
 @{
 	Layout = "~/Views/Shared/_Layout.cshtml";
-	ViewData["Title"] = "GitServer";
+	ViewBag.Title = "Home";
 }
+
+<h2>Repositories</h2>
+
+<ul>
+	@foreach(string repo in Model)
+	{
+		<li>@Html.RouteLink(repo, "GetRepositoryHomeView", new { repoName = repo })</li>
+	}
+</ul>

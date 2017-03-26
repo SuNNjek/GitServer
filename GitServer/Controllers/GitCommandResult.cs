@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using GitServer.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GitServer.Controllers
 {
-	public class GitCommandResult : ActionResult
+	public class GitCommandResult : IActionResult
     {
 		private string _gitPath;
 
@@ -18,7 +21,7 @@ namespace GitServer.Controllers
 			Options = options;
 		}
 
-		public override void ExecuteResult(ActionContext context)
+		public async Task ExecuteResultAsync(ActionContext context)
 		{
 			HttpResponse response = context.HttpContext.Response;
 			Stream responseStream = GetOutputStream(context.HttpContext);
@@ -36,11 +39,27 @@ namespace GitServer.Controllers
 			ProcessStartInfo info = new ProcessStartInfo(_gitPath, Options.ToString())
 			{
 				UseShellExecute = false,
-				//CreateNoWindow = true,
+				CreateNoWindow = true,
 				RedirectStandardInput = true,
 				RedirectStandardOutput = true,
 				RedirectStandardError = true
 			};
+
+			GitServerUser user = await Options.UserManager.GetUserAsync(context.HttpContext.User);
+			string userName = await Options.UserManager.GetUserNameAsync(user);
+			string email = await Options.UserManager.GetEmailAsync(user);
+
+			info.Environment.Add("AUTH_USER", userName);
+			info.Environment.Add("REMOTE_USER", userName);
+			info.Environment.Add("GIT_COMMITTER_EMAIL", email);
+
+			/*
+			info.EnvironmentVariables.Add("AUTH_USER", username);
+            info.EnvironmentVariables.Add("REMOTE_USER", username);
+            info.EnvironmentVariables.Add("AUTH_USER_TEAMS", teamsstr);
+            info.EnvironmentVariables.Add("AUTH_USER_ROLES", rolesstr);
+            info.EnvironmentVariables.Add("AUTH_USER_DISPLAYNAME", displayname);
+			 */
 
 			using (Process process = Process.Start(info))
 			{

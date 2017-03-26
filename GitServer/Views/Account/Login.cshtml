@@ -1,0 +1,32 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@using GitServer.Models
+@model LoginModel
+
+@{
+    ViewBag.Title = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Login</h2>
+
+<div style="width:250px;">
+	<form asp-route="Login" asp-route-returnurl="@ViewBag.ReturnUrl" method="post">
+		<table>
+			<tr>
+				<td><label asp-for="Username"></label></td>
+				<td><input asp-for="Username" /></td>
+			</tr>
+			<tr>
+				<td><label asp-for="Password"></label></td>
+				<td><input asp-for="Password" /></td>
+			</tr>
+		</table>
+	
+		<input asp-for="RememberMe" />
+		<label asp-for="RememberMe"></label>
+		<br />
+		<br />
+		<input type="submit" value="Login" style="float:right;" />
+	</form>
+</div>

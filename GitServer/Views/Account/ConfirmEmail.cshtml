@@ -1,0 +1,26 @@
+@model bool
+
+@{
+    ViewData["Title"] = "Confirm e-mail";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>ConfirmEmail</h2>
+
+@if(Model)
+{
+	<h2>Confirmation successful</h2>
+
+	<p>
+		Congratulations, you successfully confirmed your e-mail address.<br />
+		Now you can go and @Html.RouteLink("login", "Login")
+	</p>
+}
+else
+{
+	<h2>Confirmation failed</h2>
+
+	<p>
+		Sorry, but the confirmation for your e-mail failed.
+	</p>
+}
